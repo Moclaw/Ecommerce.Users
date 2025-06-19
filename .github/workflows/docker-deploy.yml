@@ -69,8 +69,8 @@ jobs:
           file: ./src/Ecom.Users.API/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }}
-            ghcr.io/${{ github.repository_owner }}/${{ env.DOCKER_IMAGE }}:${{ github.sha }}
+            ghcr.io/moclaw/${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }}
+            ghcr.io/moclaw/${{ env.DOCKER_IMAGE }}:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -115,8 +115,8 @@ jobs:
             -e ASPNETCORE_ENVIRONMENT=Development \
             -v "$(pwd)/logs:/app/logs" \
             --network bridge \
-            ghcr.io/${{ github.repository_owner }}/${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }}
-          
+            ghcr.io/moclaw/${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }}
+
           # Display container info
           echo "Container started with ID: $(docker ps -q -f name=${{ env.CONTAINER_NAME }})"
 
