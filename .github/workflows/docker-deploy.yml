@@ -7,6 +7,10 @@ on:
     branches: [main, develop]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  packages: write
+
 env:
   DOTNET_VERSION: "9.0.x"  # Adjust version as needed
   APP_NAME: "ecommerce-users"
@@ -69,8 +73,8 @@ jobs:
           file: ./src/Ecom.Users.API/Dockerfile
           push: true
           tags: |
-            ghcr.io/moclaw/${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }}
-            ghcr.io/moclaw/${{ env.DOCKER_IMAGE }}:${{ github.sha }}
+            ghcr.io/${{ github.repository }}:${{ env.DOCKER_TAG }}
+            ghcr.io/${{ github.repository }}:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -105,7 +109,7 @@ jobs:
           echo "Starting container deployment..."
           
           # Pull the latest image
-          docker pull ghcr.io/${{ github.repository_owner }}/${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }}
+          docker pull ghcr.io/${{ github.repository }}:${{ env.DOCKER_TAG }}
           
           # Run container with proper configuration
           docker run -d \
@@ -115,7 +119,7 @@ jobs:
             -e ASPNETCORE_ENVIRONMENT=Development \
             -v "$(pwd)/logs:/app/logs" \
             --network bridge \
-            ghcr.io/moclaw/${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }}
+            ghcr.io/${{ github.repository }}:${{ env.DOCKER_TAG }}
 
           # Display container info
           echo "Container started with ID: $(docker ps -q -f name=${{ env.CONTAINER_NAME }})"
