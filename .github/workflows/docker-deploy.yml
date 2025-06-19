@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 env:
-  DOTNET_VERSION: "7.0.x"  # Adjust version as needed
+  DOTNET_VERSION: "9.0.x"  # Adjust version as needed
   APP_NAME: "ecommerce-users"
   DOCKER_IMAGE: "ecom-users-api"
   DOCKER_TAG: "latest"
