@@ -7,12 +7,8 @@ on:
     branches: [main, develop]
   workflow_dispatch:
 
-permissions:
-  contents: read
-  packages: write
-
 env:
-  DOTNET_VERSION: "9.0.x"  # Adjust version as needed
+  DOTNET_VERSION: "9.0.x"
   APP_NAME: "ecommerce-users"
   DOCKER_IMAGE: "ecom-users-api"
   DOCKER_TAG: "latest"
@@ -29,17 +25,17 @@ jobs:
 
     steps:
       - name: "Checkout Code"
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: "Setup .NET"
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: "Cache NuGet packages"
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
@@ -56,47 +52,26 @@ jobs:
         run: |
           dotnet test --configuration Release --no-build --verbosity normal
 
-      - name: "Set up Docker Buildx"
-        uses: docker/setup-buildx-action@v2
-      
-      - name: "Set lowercase repository name"
+      - name: "Build Docker Image"
         run: |
-          echo "REPO_LOWER=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
-          echo "REPO_OWNER_LOWER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
-      
-      - name: "Login to GitHub Container Registry"
-        uses: docker/login-action@v2
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-        
-      - name: "Build and push Docker image"
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          file: ./src/Ecom.Users.API/Dockerfile
-          push: true
-          tags: |
-            ghcr.io/${{ env.REPO_OWNER_LOWER }}/${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }}
-            ghcr.io/${{ env.REPO_OWNER_LOWER }}/${{ env.DOCKER_IMAGE }}:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          docker build -t ${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }} -f src/Ecom.Users.API/Dockerfile .
 
   # ==========================================
   # DEPLOY JOB
   # ==========================================
   deploy:
-    name: "Deploy to Environment"
+    name: "Deploy to Development"
     runs-on: self-hosted
     needs: build-and-test
 
     steps:
       - name: "Checkout Code"
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: "Ensure logs directory exists"
-        run: mkdir -p ./logs
+      - name: "Setup Environment"
+        run: |
+          # Ensure logs directory exists
+          mkdir -p ./logs
 
       - name: "Stop and Remove Existing Container"
         run: |
@@ -109,17 +84,9 @@ jobs:
             echo "No existing container found."
           fi
 
-      - name: "Set lowercase repository name"
-        run: |
-          echo "REPO_LOWER=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
-          echo "REPO_OWNER_LOWER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
-
       - name: "Deploy with Docker"
         run: |
           echo "Starting container deployment..."
-          
-          # Pull the latest image
-          docker pull ghcr.io/${{ env.REPO_OWNER_LOWER }}/${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }}
           
           # Run container with proper configuration
           docker run -d \
@@ -129,8 +96,8 @@ jobs:
             -e ASPNETCORE_ENVIRONMENT=Development \
             -v "$(pwd)/logs:/app/logs" \
             --network bridge \
-            ghcr.io/${{ env.REPO_OWNER_LOWER }}/${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }}
-
+            ${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }}
+          
           # Display container info
           echo "Container started with ID: $(docker ps -q -f name=${{ env.CONTAINER_NAME }})"
 
@@ -157,7 +124,7 @@ jobs:
 
       - name: "Show Container Status"
         run: |
-          echo "🚀 Deployment completed!"
+          echo "🚀 Development deployment completed!"
           echo ""
           echo "Docker Container Status:"
           docker ps --filter "name=${{ env.CONTAINER_NAME }}"
@@ -165,28 +132,32 @@ jobs:
           echo "Container Logs:"
           docker logs --tail 20 ${{ env.CONTAINER_NAME }}
           echo ""
-          echo "Service URL: http://localhost:${{ env.API_PORT }}"
-          echo "Swagger UI: http://localhost:${{ env.API_PORT }}/swagger"
+          echo "Service URLs:"
+          echo "  • API: http://localhost:${{ env.API_PORT }}"
+          echo "  • Swagger UI: http://localhost:${{ env.API_PORT }}/swagger"
 
   # ==========================================
-  # CLEANUP JOB (optional - uncomment if needed)
+  # CLEANUP JOB
   # ==========================================
-  # cleanup:
-  #   name: "Cleanup"
-  #   runs-on: self-hosted
-  #   needs: deploy
-  #   if: always()
-  # 
-  #   steps:
-  #     - name: "Archive Logs"
-  #       run: |
-  #         # Create logs archive directory
-  #         mkdir -p ./logs/archive/$(date +%Y%m%d)
-  #
-  #         # Copy current logs
-  #         cp -r ./logs/* ./logs/archive/$(date +%Y%m%d)/ 2>/dev/null || true
-  #
-  #     - name: "Cleanup Docker Images"
-  #       run: |
-  #         # Remove dangling images
-  #         docker image prune -f
+  cleanup:
+    name: "Cleanup"
+    runs-on: self-hosted
+    needs: deploy
+    if: always()
+
+    steps:
+      - name: "Archive Logs"
+        run: |
+          # Create logs archive directory
+          mkdir -p ./logs/archive/$(date +%Y%m%d)
+
+          # Copy current logs
+          cp -r ./logs/* ./logs/archive/$(date +%Y%m%d)/ 2>/dev/null || true
+
+          # Compress old logs (older than 7 days)
+          find ./logs/archive -name "*.txt" -mtime +7 -exec gzip {} \; 2>/dev/null || true
+
+      - name: "Cleanup Docker Images"
+        run: |
+          # Remove dangling images
+          docker image prune -f
