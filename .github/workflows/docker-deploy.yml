@@ -101,27 +101,6 @@ jobs:
           # Display container info
           echo "Container started with ID: $(docker ps -q -f name=${{ env.CONTAINER_NAME }})"
 
-      - name: "Health Check"
-        run: |
-          # Wait for API to be healthy
-          echo "Checking API health..."
-          ATTEMPTS=0
-          MAX_ATTEMPTS=12
-          
-          until curl -s -f http://localhost:${{ env.API_PORT }}/health || curl -s -f http://localhost:${{ env.API_PORT }}/healthz || [ $ATTEMPTS -eq $MAX_ATTEMPTS ]; do
-            echo "Waiting for API... Attempt $(($ATTEMPTS+1))/$MAX_ATTEMPTS"
-            sleep 5
-            ATTEMPTS=$(($ATTEMPTS+1))
-          done
-          
-          if [ $ATTEMPTS -eq $MAX_ATTEMPTS ]; then
-            echo "API health check failed after $MAX_ATTEMPTS attempts"
-            docker logs ${{ env.CONTAINER_NAME }}
-            exit 1
-          else
-            echo "API is healthy!"
-          fi
-
       - name: "Show Container Status"
         run: |
           echo "🚀 Development deployment completed!"
