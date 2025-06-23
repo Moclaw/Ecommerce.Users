@@ -120,10 +120,10 @@ app.UseHttpsRedirection();
 app.UseGlobalExceptionHandling();
 
 // Configure ARM Elastic (disable in Kubernetes to prevent connection issues)
-if (!builder.Environment.IsProduction())
-{
-    app.UseElasticApm(configuration);
-}
+// if (!builder.Environment.IsProduction())
+// {
+//     // app.UseElasticApm(configuration);
+// }
 
 app.UseRouting();
 
