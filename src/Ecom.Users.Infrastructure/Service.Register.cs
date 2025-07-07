@@ -30,16 +30,6 @@ namespace Ecom.Users.Infrastructure
                     .LogTo(Console.WriteLine, LogLevel.Information);
             });
 
-            var serviceProvider = services.BuildServiceProvider();
-            var dbContext = serviceProvider.GetRequiredService<ApplicationDbContext>();
-            dbContext.Database.EnsureCreated();
-            if (dbContext.Database.GetPendingMigrations().Any())
-            {
-                dbContext.Database.Migrate();
-            }
-
-            services.AddScoped<ApplicationDbContext>();
-
             //services.AddDotnetCap(configuration).AddRabbitMq(configuration);
 
             services.AddKeyedScoped<ICommandRepository, CommandDefaultRepository>(
