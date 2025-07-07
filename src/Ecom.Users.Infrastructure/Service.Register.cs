@@ -24,17 +24,27 @@ namespace Ecom.Users.Infrastructure
             // Register DbContext
             services.AddDbContext<ApplicationDbContext>(options =>
             {
-                options.UseNpgsql(
-                    configuration.GetConnectionString("DefaultConnection")
-                ).EnableSensitiveDataLogging()
-                .LogTo(Console.WriteLine, LogLevel.Information);
+                options
+                    .UseNpgsql(configuration.GetConnectionString("DefaultConnection"))
+                    .EnableSensitiveDataLogging()
+                    .LogTo(Console.WriteLine, LogLevel.Information);
             });
+
+            var serviceProvider = services.BuildServiceProvider();
+            var dbContext = serviceProvider.GetRequiredService<ApplicationDbContext>();
+            dbContext.Database.EnsureCreated();
+            if (dbContext.Database.GetPendingMigrations().Any())
+            {
+                dbContext.Database.Migrate();
+            }
 
             services.AddScoped<ApplicationDbContext>();
 
             //services.AddDotnetCap(configuration).AddRabbitMq(configuration);
 
-            services.AddKeyedScoped<ICommandRepository, CommandDefaultRepository>(ServiceKeys.CommandRepository);
+            services.AddKeyedScoped<ICommandRepository, CommandDefaultRepository>(
+                ServiceKeys.CommandRepository
+            );
 
             services.TryAddKeyedScoped(
                 typeof(IQueryRepository<,>),
