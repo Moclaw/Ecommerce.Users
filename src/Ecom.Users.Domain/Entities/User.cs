@@ -4,7 +4,7 @@ public class User : BaseEntity, IEntity<Guid>
 {
     public Guid Id { get; set; }
     
-    public string Email { get; set; }
+    public string Email { get; set; } = null!;
     
     public string? UserName { get; set; }
     
@@ -14,7 +14,7 @@ public class User : BaseEntity, IEntity<Guid>
     
     public string? PhoneNumber { get; set; }
     
-    public string? PasswordHash { get; set; }
+    public string PasswordHash { get; set; } = null!;
     
     public bool EmailConfirmed { get; set; } = false;
     
