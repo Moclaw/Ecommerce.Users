@@ -90,7 +90,6 @@ builder
 
 
 
-
 // Configure Autofac after all service registrations
 builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
 builder.Host.ConfigureContainer<ContainerBuilder>(containerBuilder =>
@@ -114,10 +113,6 @@ if (app.Environment.IsDevelopment())
     );
 }
 
-var scope = app.Services.CreateScope();
-var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-// Ensure the database is created and migrations are applied
-await dbContext.Database.MigrateAsync();
 
 app.UseHttpsRedirection();
 

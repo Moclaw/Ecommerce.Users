@@ -30,7 +30,12 @@ namespace Ecom.Users.Infrastructure
                     .LogTo(Console.WriteLine, LogLevel.Information);
             });
 
-            //services.AddDotnetCap(configuration).AddRabbitMq(configuration);
+            var scope = services.BuildServiceProvider().CreateScope();
+            using (scope)
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                dbContext.Database.Migrate();
+            }
 
             services.AddKeyedScoped<ICommandRepository, CommandDefaultRepository>(
                 ServiceKeys.CommandRepository
