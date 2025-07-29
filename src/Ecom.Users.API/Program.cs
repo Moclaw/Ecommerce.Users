@@ -1,3 +1,4 @@
+using System.Text;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Ecom.Users.API.Middleware;
@@ -14,7 +15,6 @@ using MinimalAPI;
 using MinimalAPI.OpenApi;
 using MinimalAPI.SwaggerUI;
 using Serilog;
-using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -88,8 +88,6 @@ builder
     .AddInfrastructureServices(configuration)
     .AddApplicationServices(configuration);
 
-
-
 // Configure Autofac after all service registrations
 builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
 builder.Host.ConfigureContainer<ContainerBuilder>(containerBuilder =>
@@ -113,6 +111,26 @@ if (app.Environment.IsDevelopment())
     );
 }
 
+app.Use(
+    async (context, next) =>
+    {
+        context.Request.EnableBuffering();
+
+        if (
+            (
+                context.Request.Method == HttpMethods.Post
+                || context.Request.Method == HttpMethods.Put
+            )
+            && context.Request.ContentLength > 0
+        )
+        {
+            // Read and rewind the stream to ensure it's fully buffered
+            context.Request.Body.Position = 0;
+        }
+
+        await next();
+    }
+);
 
 app.UseHttpsRedirection();
 

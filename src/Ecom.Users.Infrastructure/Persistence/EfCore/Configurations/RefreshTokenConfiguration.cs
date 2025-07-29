@@ -10,6 +10,7 @@ public class RefreshTokenConfiguration : IEntityTypeConfiguration<RefreshToken>
     {
         // Primary Key
         builder.HasKey(rt => rt.Id);
+        builder.Property(rt => rt.Id).ValueGeneratedNever(); // We generate GUIDs in code
 
         // Properties
         builder.Property(rt => rt.UserId).IsRequired();

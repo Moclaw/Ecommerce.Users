@@ -5,9 +5,8 @@ using Shared.Utils;
 
 namespace Ecom.Users.Application.Features.Auth.Commands.Register
 {
-    public class RegisterHandler(
-        IAuthService authService
-    ) : ICommandHandler<RegisterRequest, RegisterResponse>
+    public class RegisterHandler(IAuthService authService)
+        : ICommandHandler<RegisterRequest, RegisterResponse>
     {
         public async Task<Response<RegisterResponse>> Handle(
             RegisterRequest request,
@@ -33,16 +32,17 @@ namespace Ecom.Users.Application.Features.Auth.Commands.Register
                 FirstName = request.FirstName ?? "",
                 LastName = request.LastName ?? "",
                 PhoneNumber = request.PhoneNumber,
-                UserName = request.UserName ?? ""
+                UserName = request.UserName ?? "",
             };
 
             var result = await authService.RegisterAsync(registerDto);
-            
+
             if (!result.IsSuccess || result.Data == null)
             {
                 return ResponseUtils.Error<RegisterResponse>(
                     result.StatusCode,
-                    result.Message ?? MessageKeys.Error);
+                    result.Message ?? MessageKeys.Error
+                );
             }
 
             var authResponse = result.Data;
@@ -53,7 +53,7 @@ namespace Ecom.Users.Application.Features.Auth.Commands.Register
                 AccessToken = authResponse.AccessToken,
                 RefreshToken = authResponse.RefreshToken,
                 ExpiresAt = authResponse.ExpiresAt.DateTime,
-                Roles = [.. authResponse.Roles]
+                Roles = [.. authResponse.Roles],
             };
 
             return ResponseUtils.Success(response, MessageKeys.Success);

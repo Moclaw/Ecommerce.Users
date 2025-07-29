@@ -10,6 +10,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
     {
         // Primary Key
         builder.HasKey(u => u.Id);
+        builder.Property(u => u.Id).ValueGeneratedNever(); // We generate GUIDs in code
 
         // Properties
         builder.Property(u => u.Email).IsRequired().HasMaxLength(256);

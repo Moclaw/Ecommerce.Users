@@ -10,6 +10,7 @@ public class UserRoleConfiguration : IEntityTypeConfiguration<UserRole>
     {
         // Primary Key
         builder.HasKey(ur => ur.Id);
+        builder.Property(ur => ur.Id).ValueGeneratedNever(); // We generate GUIDs in code
 
         // Properties
         builder.Property(ur => ur.UserId).IsRequired();

@@ -10,6 +10,7 @@ public class PermissionConfiguration : IEntityTypeConfiguration<Permission>
     {
         // Primary Key
         builder.HasKey(p => p.Id);
+        builder.Property(p => p.Id).ValueGeneratedNever(); // We generate GUIDs in code
 
         // Properties
         builder.Property(p => p.Module).IsRequired().HasMaxLength(100);

@@ -14,6 +14,6 @@ namespace Ecom.Users.API.Endpoints.Auth.Commands
         )
         {
             return await _mediator.Send(req, ct);
-        }
+        } 
     }
 }

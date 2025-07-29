@@ -10,6 +10,7 @@ public class RolePermissionConfiguration : IEntityTypeConfiguration<RolePermissi
     {
         // Primary Key
         builder.HasKey(rp => rp.Id);
+        builder.Property(rp => rp.Id).ValueGeneratedNever(); // We generate GUIDs in code
 
         // Properties
         builder.Property(rp => rp.RoleId).IsRequired();

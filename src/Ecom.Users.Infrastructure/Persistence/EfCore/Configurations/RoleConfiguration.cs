@@ -10,6 +10,7 @@ public class RoleConfiguration : IEntityTypeConfiguration<Role>
     {
         // Primary Key
         builder.HasKey(r => r.Id);
+        builder.Property(r => r.Id).ValueGeneratedNever(); // We generate GUIDs in code
 
         // Properties
         builder.Property(r => r.Name).IsRequired().HasMaxLength(256);
